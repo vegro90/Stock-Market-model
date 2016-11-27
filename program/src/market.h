@@ -12,7 +12,7 @@ public:
     Market();
 
     void initialzeMarket(int numberOfAgents, double agentInitalCapital);
-    void simulateTransactions(int numberOfTransactions, double smallesTransactionSize );
+    void simulateTransactions(int numberOfTransactions,int equilibriumNumberOfTransactions,  double smallesTransactionSize );
 
     void writeLogToFile(string fileName);
 
@@ -30,7 +30,7 @@ private:
     int m_numberOfAgents;
     double m_marketCapital;
     double *m_agents;
-    long int *m_transactionLog;
+    long int *m_CapitalOccurencies;
 
 
 };

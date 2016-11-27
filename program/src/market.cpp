@@ -28,32 +28,51 @@ void Market::initialzeMarket(int numberOfAgents, double agentInitalCapital) {
 //    }
 //}
 
-void Market::simulateTransactions(int numberOfTransactions, double smallesTransactionSize) {
+void Market::simulateTransactions(int numberOfTransactions,int equilibriumNumberOfTransactions,double smallesTransactionSize) {
     random_device rd;
     mt19937_64 gen{rd()};
     uniform_real_distribution<double> randomNumber(0.0,1.0);
 
     int possibleCapitalValues = m_marketCapital/smallesTransactionSize;
-    m_transactionLog = new long int[possibleCapitalValues];
+    m_CapitalOccurencies = new long int[possibleCapitalValues];
 
+    double transactionFactor,agentCapitalCombined,agent1_newCapital,agent2_newCapital;
+    for (int cycle = 0; cycle < equilibriumNumberOfTransactions; cycle++) {
+
+        int i = (int) (randomNumber(gen)*(double)m_numberOfAgents + 1);
+        int j = (int) (randomNumber(gen)*(double)m_numberOfAgents + 1);
+        //        cout << i << j<< endl;
+        if (i != j) {
+            transactionFactor = randomNumber(gen);
+            agentCapitalCombined = m_agents[i] + m_agents[j];
+            agent1_newCapital = transactionFactor * agentCapitalCombined;
+            agent2_newCapital = agentCapitalCombined - agent1_newCapital;
+            if (agent1_newCapital > 0 && agent2_newCapital > 0) {
+                m_agents[i] = agent1_newCapital;
+                m_agents[j] = agent2_newCapital;
+            }
+        }
+    }
+    //Start logging in histogram
+    int agent1_inLog,agent2_inLog;
     for (int cycle = 0; cycle < numberOfTransactions; cycle++) {
 
         int i = (int) (randomNumber(gen)*(double)m_numberOfAgents + 1);
         int j = (int) (randomNumber(gen)*(double)m_numberOfAgents + 1);
         //        cout << i << j<< endl;
         if (i != j) {
-            double transactionFactor = randomNumber(gen);
-            double agentCapitalCombined = m_agents[i] + m_agents[j];
-            double agent1_newCapital = transactionFactor * agentCapitalCombined;
-            double agent2_newCapital = agentCapitalCombined - agent1_newCapital;
+            transactionFactor = randomNumber(gen);
+            agentCapitalCombined = m_agents[i] + m_agents[j];
+            agent1_newCapital = transactionFactor * agentCapitalCombined;
+            agent2_newCapital = agentCapitalCombined - agent1_newCapital;
             if (agent1_newCapital > 0 && agent2_newCapital > 0) {
                 m_agents[i] = agent1_newCapital;
                 m_agents[j] = agent2_newCapital;
 
-                int agent1_inLog = agent1_newCapital/smallesTransactionSize;
-                int agent2_inLog = agent2_newCapital/smallesTransactionSize;
-                m_transactionLog[agent1_inLog] += 1;
-                m_transactionLog[agent2_inLog] += 1;
+                agent1_inLog = agent1_newCapital/smallesTransactionSize;
+                agent2_inLog = agent2_newCapital/smallesTransactionSize;
+                m_CapitalOccurencies[agent1_inLog] += 1;
+                m_CapitalOccurencies[agent2_inLog] += 1;
             }
         }
     }
@@ -66,7 +85,7 @@ void Market::writeLogToFile(string fileName) {
     ofile.open(outputFile);//, std::ios_base::app);
     int arrayLength = m_marketCapital/0.01;
     for(int i = 1; i <= arrayLength ; i+=10) {
-        ofile << m_transactionLog[i] << "\n" ;
+        ofile << m_CapitalOccurencies[i] << "\n" ;
     }
     ofile << std::endl;
     ofile.close();
@@ -91,7 +110,7 @@ double *Market::agent() const {
 }
 
 long *Market::transactionLog() const {
-    return m_transactionLog;
+    return m_CapitalOccurencies;
 }
 
 void Market::setNumberOfAgents(int numberOfAgents) {
@@ -107,7 +126,7 @@ void Market::setAgents(double *agents) {
 }
 
 void Market::setTransactionLog(long *transactionLog) {
-    m_transactionLog = transactionLog;
+    m_CapitalOccurencies = transactionLog;
 }
 
 
