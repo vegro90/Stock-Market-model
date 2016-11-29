@@ -19,16 +19,17 @@ public:
     int numberOfAgents() const;
     double marketCapital() const;
     double *agent() const;
-    long int *transactionLog() const;
+    long int *occurencies() const;
 
     void setNumberOfAgents(int numberOfAgents);
     void setMarketCapital(double marketCapital);
     void setAgents(double *agent);
-    void setTransactionLog(long int *transactionLog);
+    void setOccurencies(long int *occurencies);
 
 private:
     int m_numberOfAgents;
     double m_marketCapital;
+    int **m_transactionLog;
     double *m_agents;
     long int *m_CapitalOccurencies;
 
