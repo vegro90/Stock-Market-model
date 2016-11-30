@@ -9,9 +9,11 @@ using namespace std;
 
 int main()
 {
-    string filename = "histogram.txt";
 
-    long long int cycles = 10e3;
+    string filename = "histogram";
+    string counter_string = to_string(t);
+    filename.append(s);
+    long long int cycles = 10e2;
     double startCapotal = 10;
     int Agents = 500;
     double totalCapitol = startCapotal*Agents;
