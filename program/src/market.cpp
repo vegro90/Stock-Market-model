@@ -21,17 +21,16 @@ void Market::initialzeMarket(int numberOfAgents, double agentCapital) {
     m_numberOfAgents = numberOfAgents;
     m_averageCapital = agentCapital;
     m_marketCapital = m_numberOfAgents * m_averageCapital;
-
     m_agentCaptal = new double[m_numberOfAgents];
     for (int i = 0; i < m_numberOfAgents; i++) {
         m_agentCaptal[i] = agentCapital;
     }
 }
 
-void Market::initializeDistribution(int distributionResolution)
+void Market::initializeDistribution(double distributionResolution)
 {
     m_distributionResolution = distributionResolution;
-    int distributionLength = m_marketCapital/m_distributionResolution;
+    int distributionLength = (int) (m_marketCapital/distributionResolution);
     m_capitalDistribution = new unsigned long[distributionLength];
     for (int i = 0; i < distributionLength; i++) {
         m_capitalDistribution[i] = 0;
@@ -46,7 +45,7 @@ void Market::logEquilibriumState(string filename) {
     ofstream ofile;
     ofile.open(filename, ofstream::app);
 
-    double transactionFactor,agentCapitalCombined,agent1_newCapital,agent2_newCapital;
+    double transactionFactor,agentCapitalCombined,agent_i_newCapital,agent_j_newCapital;
     int agent_i,agent_j, cycle;
     double variance, differance;
     cycle = 0;
@@ -60,12 +59,10 @@ void Market::logEquilibriumState(string filename) {
             }
             transactionFactor = randomNumber(gen);
             agentCapitalCombined = m_agentCaptal[agent_i] + m_agentCaptal[agent_j];
-            agent1_newCapital = transactionFactor * agentCapitalCombined;
-            agent2_newCapital = agentCapitalCombined - agent1_newCapital;
-            if (agent1_newCapital > 0 && agent2_newCapital > 0) {
-                m_agentCaptal[agent_i] = agent1_newCapital;
-                m_agentCaptal[agent_j] = agent2_newCapital;
-            }
+            agent_i_newCapital = transactionFactor * agentCapitalCombined;
+            agent_j_newCapital = agentCapitalCombined - agent_i_newCapital;
+            m_agentCaptal[agent_i] = agent_i_newCapital;
+            m_agentCaptal[agent_j] = agent_j_newCapital;
         }
         variance = 0;
         for (int i = 0; i < m_numberOfAgents; i++) {
@@ -77,43 +74,8 @@ void Market::logEquilibriumState(string filename) {
     }
     ofile << cycle << endl;
     ofile.close();
+    cout << endl << "Balle" << endl << endl;
 }
-
-
-//void Market::calculateEquilibriumState() {
-//    random_device rd;
-//    mt19937_64 gen{rd()};
-//    uniform_real_distribution<double> randomNumber(0.0,1.0);
-
-//    double transactionFactor,agentCapitalCombined,agent_i_newCapital,agent_j_newCapital;
-//    int agent_i,agent_j, transactionNumber;
-//    double variance, differance;
-
-//    for (unsigned long cycle = 0; cycle < numberOfCycles; cycle++) {
-//        for (int transaction = 0; transaction < m_numberOfAgents; transaction++) {
-
-//            agent_i = (int) (randomNumber(gen)*(double)m_numberOfAgents);
-//            agent_j = (int) (randomNumber(gen)*(double)m_numberOfAgents);
-
-//            while(agent_j==agent_i) {
-//                agent_j = (int) (randomNumber(gen)*(double)m_numberOfAgents);
-//            }
-
-//            transactionFactor = randomNumber(gen);
-//            agentCapitalCombined = m_agentCaptal[agent_i] + m_agentCaptal[agent_j];
-
-//            agent_i_newCapital = transactionFactor * agentCapitalCombined;
-//            agent_j_newCapital = agentCapitalCombined - agent_i_newCapital;
-
-//            if (agent_i_newCapital > 0 && agent_j_newCapital > 0) {
-//                m_agentCaptal[agent_i] = agent_i_newCapital;
-//                m_agentCaptal[agent_j] = agent_j_newCapital;
-//            }
-
-//            agent_i = (int) (agent_i_newCapital/m_distributionResolution);
-//        }
-//    }
-//}
 
 
 void Market::runTransactions(int numberOfCycles) {
@@ -124,7 +86,7 @@ void Market::runTransactions(int numberOfCycles) {
     double transactionFactor,agentCapitalCombined,agent_i_newCapital,agent_j_newCapital;
     int agent_i,agent_j, transactionNumber;
     double variance, differance;
-
+    int agent_i_inLog,agent_j_inLog;
     for (unsigned long cycle = 0; cycle < numberOfCycles; cycle++) {
         for (int transaction = 0; transaction < m_numberOfAgents; transaction++) {
 
@@ -146,15 +108,89 @@ void Market::runTransactions(int numberOfCycles) {
                 m_agentCaptal[agent_j] = agent_j_newCapital;
             }
 
-            agent_i = (int) (agent_i_newCapital/m_distributionResolution);
+            agent_i_inLog = agent_i_newCapital/m_distributionResolution;
+            agent_j_inLog = agent_j_newCapital/m_distributionResolution;
+            m_capitalDistribution[agent_i_inLog] += 1;
+            m_capitalDistribution[agent_j_inLog] += 1;
         }
     }
 }
+
+
+//void Market::runTransactions(int numberOfCycles) {
+//    random_device rd;
+//    mt19937_64 gen{rd()};
+//    uniform_real_distribution<double> randomNumber(0.0,1.0);
+
+//    double transactionFactor,agentCapitalCombined,agent_i_newCapital,agent_j_newCapital;
+//    int agent_i,agent_j, transactionNumber;
+//    double correlationFactor, experienceFactor;
+//    double correlationStrength, experienceStrength;
+//    double capitalDifference;
+//    int distributionLocation;
+
+//    correlationStrength = 0;
+//    correlationFactor = 1;
+//    for (unsigned long cycle = 0; cycle < numberOfCycles; cycle++) {
+//        for (int transaction = 0; transaction < m_numberOfAgents; transaction++) {
+
+//            agent_i = (int) (randomNumber(gen)*(double)m_numberOfAgents);
+//            agent_j = (int) (randomNumber(gen)*(double)m_numberOfAgents);
+
+//            while(agent_j==agent_i) {
+//                agent_j = (int) (randomNumber(gen)*(double)m_numberOfAgents);
+//            }
+////            capitalDifference = fabs(m_agentCaptal[agent_i] - m_agentCaptal[agent_j]);
+////            if (capitalDifference > 0) {
+////                correlationFactor = pow(capitalDifference, -correlationStrength);
+////            } else {
+////                correlationFactor = 1.0;
+////            }
+
+//            //Metropolis test
+////            double metropolis = randomNumber(gen);
+////            if (correlationFactor >= metropolis) {
+
+//                transactionFactor = randomNumber(gen);
+//                agentCapitalCombined = m_agentCaptal[agent_i] + m_agentCaptal[agent_j];
+
+//                agent_i_newCapital = transactionFactor * agentCapitalCombined;
+//                agent_j_newCapital = agentCapitalCombined - agent_i_newCapital;
+
+
+//                m_agentCaptal[agent_i] = agent_i_newCapital;
+//                m_agentCaptal[agent_j] = agent_j_newCapital;
+
+////                cout << agentCapitalCombined << "," << agent_i_newCapital << "," << agent_j_newCapital << endl;
+
+//                distributionLocation = (int) (agent_i_newCapital / m_distributionResolution);
+//                m_capitalDistribution[distributionLocation] += 1;
+
+//                distributionLocation = (int) (agent_j_newCapital / m_distributionResolution);
+//                m_capitalDistribution[distributionLocation] += 1;
+////            }
+//        }
+//    }
+//}
 
 void Market::calculateCapitalDistribution(int numberOfCycles, int numberOfTransactions, int distributionResolution) {
     m_distributionResolution = distributionResolution;
 
 }
+
+void Market::writeDistributionToFile(string filename) {
+    int distributionLength = m_marketCapital/m_distributionResolution;
+    ofstream distributionFile;
+    distributionFile.open(filename, ios_base::app);
+
+    for (int i = 0; i < distributionLength; i++) {
+        distributionFile << m_capitalDistribution[i] << endl;
+    }
+
+    distributionFile.close();
+}
+
+
 
 
 /************************************/

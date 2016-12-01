@@ -12,12 +12,14 @@ public:
     Market();
     Market(int numberOfAgents, double agentCapital);
     void initialzeMarket(int numberOfAgents, double agentCapital);
-    void initializeDistribution(int distributionResolution);
+    void initializeDistribution(double distributionResolution);
     void calculateEquilibriumState();
     void logEquilibriumState(string filename);
 
     void runTransactions(int numberOfCycles);
     void calculateCapitalDistribution(int numberOfCycles, int numberOfTransactions, int distributionResolution);
+
+    void writeDistributionToFile(string filename);
 
     //SETTERS
     int numberOfAgents() const;
