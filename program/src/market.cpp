@@ -2,16 +2,25 @@
 
 Market::Market() {
     m_numberOfAgents = 0;
-    m_marketCapital = 0;
     m_averageCapital = 0;
+    m_marketCapital = 0;
     m_agentSavingFactor = 0;
-    m_agentSpendingFactor = 0;
+    m_agentSpendingFactor = 1;
+    m_distributionResolution = 0.01;
+}
+
+Market::Market(int numberOfAgents, double agentCapital) {
+    m_numberOfAgents = numberOfAgents;
+    m_averageCapital = agentCapital;
+    m_marketCapital = m_numberOfAgents * m_averageCapital;
+    m_agentSavingFactor = 0;
+    m_agentSpendingFactor = 1;
 }
 
 void Market::initialzeMarket(int numberOfAgents, double agentCapital) {
     m_numberOfAgents = numberOfAgents;
     m_averageCapital = agentCapital;
-    m_marketCapital = m_numberOfAgents*m_averageCapital;
+    m_marketCapital = m_numberOfAgents * m_averageCapital;
 
     m_agentCaptal = new double[m_numberOfAgents];
     for (int i = 0; i < m_numberOfAgents; i++) {
@@ -24,16 +33,12 @@ void Market::calculateEquilibriumState() {
     mt19937_64 gen{rd()};
     uniform_real_distribution<double> randomNumber(0.0,1.0);
 
-    //TEST FILE
-    std::ofstream ofile;
-    string filename = "testEquilibrium.txt";
-    ofile.open(filename);//, std::ios_base::app);
-
     double transactionFactor,agentCapitalCombined,agent1_newCapital,agent2_newCapital;
-    int agent_i,agent_j;
+    int agent_i,agent_j, transactionNumber;
+    double variance, differance;
+    transactionNumber = 0;
     //Calculate equilibrium
-    for (int cycle = 0; cycle < 1e4; cycle++) {
-
+    while (variance < m_averageCapital*m_averageCapital) {
         agent_i = (int) (randomNumber(gen)*(double)m_numberOfAgents);
         agent_j = (int) (randomNumber(gen)*(double)m_numberOfAgents);
         while(agent_j==agent_i) {
@@ -48,28 +53,153 @@ void Market::calculateEquilibriumState() {
             m_agentCaptal[agent_j] = agent2_newCapital;
         }
 
-        double variance, differance;
+        variance = 0;
         for (int i = 0; i < m_numberOfAgents; i++) {
             differance = (m_agentCaptal[i]-m_averageCapital);
             variance += differance*differance;
         }
         variance = variance/m_numberOfAgents;
+        transactionNumber ++;
+    }
+}
 
-        //TEST FILE
-        ofile << variance << "\n" ;
+void Market::runTransactions(int numberOfTransactions) {
+    random_device rd;
+    mt19937_64 gen{rd()};
+    uniform_real_distribution<double> randomNumber(0.0,1.0);
+
+    double transactionFactor,agentCapitalCombined,agent1_newCapital,agent2_newCapital;
+    int agent_i,agent_j, transactionNumber;
+    double variance, differance;
+
+    for (unsigned long transaction = 0; transaction < numberOfTransactions; transaction++) {
+        agent_i = (int) (randomNumber(gen)*(double)m_numberOfAgents);
+        agent_j = (int) (randomNumber(gen)*(double)m_numberOfAgents);
+        while(agent_j==agent_i) {
+            agent_j = (int) (randomNumber(gen)*(double)m_numberOfAgents);
+        }
+
+        transactionFactor = randomNumber(gen);
+        agentCapitalCombined = m_agentCaptal[agent_i] + m_agentCaptal[agent_j];
+
+        agent1_newCapital = transactionFactor * agentCapitalCombined;
+        agent2_newCapital = agentCapitalCombined - agent1_newCapital;
+
+        if (agent1_newCapital > 0 && agent2_newCapital > 0) {
+            m_agentCaptal[agent_i] = agent1_newCapital;
+            m_agentCaptal[agent_j] = agent2_newCapital;
+        }
+    }
+}
+
+void Market::logTransactions(int numberOfTransactions) {
+    random_device rd;
+    mt19937_64 gen{rd()};
+    uniform_real_distribution<double> randomNumber(0.0,1.0);
+
+    double transactionFactor,agentCapitalCombined,agent_i_newCapital,agent_j_newCapital;
+    int agent_i,agent_j, transactionNumber;
+    double variance, differance;
+
+    for (unsigned long transaction = 0; transaction < numberOfTransactions; transaction++) {
+        agent_i = (int) (randomNumber(gen)*(double)m_numberOfAgents);
+        agent_j = (int) (randomNumber(gen)*(double)m_numberOfAgents);
+        while(agent_j==agent_i) {
+            agent_j = (int) (randomNumber(gen)*(double)m_numberOfAgents);
+        }
+
+        transactionFactor = randomNumber(gen);
+        agentCapitalCombined = m_agentCaptal[agent_i] + m_agentCaptal[agent_j];
+
+        agent_i_newCapital = transactionFactor * agentCapitalCombined;
+        agent_j_newCapital = agentCapitalCombined - agent_i_newCapital;
+
+        if (agent_i_newCapital > 0 && agent_j_newCapital > 0) {
+            m_agentCaptal[agent_i] = agent_i_newCapital;
+            m_agentCaptal[agent_j] = agent_j_newCapital;
+        }
+
+        agent_i = (int) (agent_i_newCapital/m_distributionResolution);
+
+
 
     }
-    //TEST FILE
-    ofile << std::endl;
-    ofile.close();
+}
+
+void Market::calculateCapitalDistribution(int numberOfCycles, int numberOfTransactions, int distributionResolution) {
+    m_distributionResolution = distributionResolution;
+
+}
+
+
+/************************************/
+/*        Setters & Getters         */
+/************************************/
+
+int Market::numberOfAgents() const {
+    return m_numberOfAgents;
+}
+
+double Market::marketCapital() const {
+    return m_marketCapital;
+}
+
+double Market::averageCapital() const {
+    return m_averageCapital;
+}
+
+double *Market::agentCaptal() const {
+    return m_agentCaptal;
+}
+
+double Market::agentSavingFactor() const {
+    return m_agentSavingFactor;
+}
+
+double Market::agentSpendingFactor() const {
+    return m_agentSpendingFactor;
+}
+
+unsigned long *Market::capitalOccurencies() const {
+    return m_capitalDistribution;
+}
+
+//SETTERS
+
+void Market::setNumberOfAgents(int numberOfAgents) {
+    m_numberOfAgents = numberOfAgents;
+}
+
+void Market::setMarketCapital(double marketCapital) {
+    m_marketCapital = marketCapital;
+}
+
+void Market::setAverageCapital(double averageCapital) {
+    m_averageCapital = averageCapital;
+}
+
+void Market::setAgentCaptal(double *agentCaptal) {
+    m_agentCaptal = agentCaptal;
+}
+
+void Market::setAgentSavingFactor(double agentSavingFactor) {
+    m_agentSavingFactor = agentSavingFactor;
+    m_agentSpendingFactor = 1.0 - agentSavingFactor;
+}
+
+void Market::setAgentSpendingFactor(double agentSpendingFactor) {
+    m_agentSpendingFactor = agentSpendingFactor;
+    m_agentSavingFactor = 1.0 - agentSpendingFactor;
+}
+
+void Market::setCapitalOccurencies(unsigned long *capitalOccurencies) {
+    m_capitalDistribution = capitalOccurencies;
 }
 
 
 
 
 
-/************************************/
-/*        Setters & Getters         */
-/************************************/
+
 
 
