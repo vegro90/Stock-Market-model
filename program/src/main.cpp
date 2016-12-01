@@ -31,8 +31,8 @@ int main(int argc, char *argv[]) {
 
     //Initialize market with saving for equilibrium tests
     int numberOfCycles = 1000;
-    double savingFactor = 0.9;
-    string filename = "equilibriumtestForSavings09.txt";
+    double savingFactor = 0.5;
+    string filename = "equilibriumtestForSavings05.txt";
     market.initialzeMarket(numberOfAgents,initialCapital);
     market.runTransactionsWithSavings(numberOfCycles,savingFactor,filename);
 
