@@ -121,7 +121,7 @@ void Market::runTransactions(int numberOfCycles) {
     mt19937_64 gen{rd()};
     uniform_real_distribution<double> randomNumber(0.0,1.0);
 
-    double transactionFactor,agentCapitalCombined,agent_i_newCapital,agent_j_newCapital;
+    double transactionFactor, agentCapitalCombined, agent_i_newCapital, agent_j_newCapital;
     int agent_i,agent_j, transactionNumber;
     double variance, differance;
 
@@ -156,10 +156,82 @@ void Market::calculateCapitalDistribution(int numberOfCycles, int numberOfTransa
 
 }
 
+/************************************/
+/*        Assignment C              */
+/************************************/
+
+void Market::runTransactionsWithSavings(int numberOfCycles, double savingFactor, string filename) {
+    random_device rd;
+    mt19937_64 gen{rd()};
+    uniform_real_distribution<double> randomNumber(0.0,1.0);
+
+    ofstream ofile;
+    ofile.open(filename, ofstream::app);
+
+    double transactionFactor, agentCapitalCombined, agent_i_newCapital, agent_j_newCapital;
+    int agent_i, agent_j, transactionNumber, MC_cycles, histogramSpace;
+    double variance, differance, agentCapitolChange;
+    double savingsFactorUsed = 1 - savingFactor;
+
+    //Vector for calculating histogtam
+    double *histogramVector = new double[m_numberOfAgents];
+    for(int i = 0; i <= m_numberOfAgents; i++) {
+        histogramVector[i] = 0;
+    }
+
+    //Loop for all transactions
+    for (unsigned long cycle = 0; cycle < numberOfCycles; cycle++) {
+        for (int transaction = 0; transaction < m_numberOfAgents; transaction++) {
+
+            agent_i = (int) (randomNumber(gen)*(double)m_numberOfAgents);
+            agent_j = (int) (randomNumber(gen)*(double)m_numberOfAgents);
+
+            while(agent_j==agent_i) {
+                agent_j = (int) (randomNumber(gen)*(double)m_numberOfAgents);
+            }
+
+            transactionFactor = randomNumber(gen);
+
+            agentCapitalCombined = m_agentCaptal[agent_i] + m_agentCaptal[agent_j];
+            agentCapitolChange = savingsFactorUsed*(transactionFactor*agentCapitalCombined - m_agentCaptal[agent_i]);
+
+
+            agent_i_newCapital = m_agentCaptal[agent_i] + agentCapitolChange;
+            agent_j_newCapital = m_agentCaptal[agent_j] - agentCapitolChange;
+
+            m_agentCaptal[agent_i] = agent_i_newCapital;
+            m_agentCaptal[agent_j] = agent_j_newCapital;
+
+
+            histogramSpace = (int) (agent_i_newCapital/m_distributionResolution);
+            histogramVector[histogramSpace] += 1;
+        }
+        variance = 0;
+        for (int i = 0; i < m_numberOfAgents; i++) {
+            differance = (m_agentCaptal[i]-m_averageCapital);
+            variance += differance*differance;
+        }
+        variance = variance/m_numberOfAgents;
+        MC_cycles ++;
+        //ofile << variance << endl;
+    }
+    //ofile << MC_cycle << "  " << variance << endl;
+
+    //Printing histogram vector to file
+    for(int i = 0; i<= m_numberOfAgents; i++) {
+        ofile << histogramVector[i] << "\n";
+    }
+
+    ofile.close();
+}
+
+
 
 /************************************/
 /*        Setters & Getters         */
 /************************************/
+
+//GETTERS
 
 int Market::numberOfAgents() const {
     return m_numberOfAgents;

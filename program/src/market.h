@@ -19,6 +19,8 @@ public:
     void runTransactions(int numberOfCycles);
     void calculateCapitalDistribution(int numberOfCycles, int numberOfTransactions, int distributionResolution);
 
+    void runTransactionsWithSavings(int numberOfCycles, double savingFactor, string filename);
+
     //SETTERS
     int numberOfAgents() const;
     double marketCapital() const;
