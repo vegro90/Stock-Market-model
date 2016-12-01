@@ -2,6 +2,7 @@
 #define MARKET_H
 #include <random>
 #include <iostream>
+#include <string>
 #include <fstream>
 #include <iomanip>
 #include <math.h>
@@ -12,7 +13,7 @@ public:
     Market();
 
     void initialzeMarket(int numberOfAgents, double agentCapital);
-    void calculateEquilibriumState();
+    int calculateEquilibriumState();
 
 
 private:

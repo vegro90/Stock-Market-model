@@ -19,7 +19,7 @@ void Market::initialzeMarket(int numberOfAgents, double agentCapital) {
     }
 }
 
-void Market::calculateEquilibriumState() {
+int Market::calculateEquilibriumState() {
     random_device rd;
     mt19937_64 gen{rd()};
     uniform_real_distribution<double> randomNumber(0.0,1.0);
@@ -27,13 +27,16 @@ void Market::calculateEquilibriumState() {
     //TEST FILE
     std::ofstream ofile;
     string filename = "testEquilibrium.txt";
-    ofile.open(filename);//, std::ios_base::app);
+    ofile.open(filename, std::ios_base::app);
 
-    double transactionFactor,agentCapitalCombined,agent1_newCapital,agent2_newCapital;
-    int agent_i,agent_j;
+    double transactionFactor,agentCapitalCombined,agent1_newCapital,agent2_newCapital,variance;
+    int agent_i,agent_j,counter,transactions;
+    counter = 0;
+    transactions = 0;
+    variance = 0;
     //Calculate equilibrium
-    for (int cycle = 0; cycle < 1e4; cycle++) {
-
+    //for (int cycle = 0; cycle < 100000; cycle++) {
+    while (variance < m_averageCapital*m_averageCapital) {
         agent_i = (int) (randomNumber(gen)*(double)m_numberOfAgents);
         agent_j = (int) (randomNumber(gen)*(double)m_numberOfAgents);
         while(agent_j==agent_i) {
@@ -47,21 +50,27 @@ void Market::calculateEquilibriumState() {
             m_agentCaptal[agent_i] = agent1_newCapital;
             m_agentCaptal[agent_j] = agent2_newCapital;
         }
+        counter += 1;
+        if (counter == 1){
+            counter = 0;
 
-        double variance, differance;
-        for (int i = 0; i < m_numberOfAgents; i++) {
-            differance = (m_agentCaptal[i]-m_averageCapital);
-            variance += differance*differance;
+            double  differance;
+            variance = 0;
+            for (int i = 0; i < m_numberOfAgents; i++) {
+                differance = (m_agentCaptal[i]-m_averageCapital);
+                variance += differance*differance;
+            }
+            variance = variance/m_numberOfAgents;
+
+
         }
-        variance = variance/m_numberOfAgents;
-
-        //TEST FILE
-        ofile << variance << "\n" ;
-
+        transactions ++;
     }
     //TEST FILE
+    ofile << transactions << "\n" ;
     ofile << std::endl;
     ofile.close();
+    return transactions;
 }
 
 
