@@ -26,7 +26,9 @@ int Market::calculateEquilibriumState() {
 
     //TEST FILE
     std::ofstream ofile;
-    string filename = "testEquilibrium.txt";
+    string filename = "testEquilibrium";
+    filename += std::to_string(m_numberOfAgents);
+    filename.append(".txt");
     ofile.open(filename, std::ios_base::app);
 
     double transactionFactor,agentCapitalCombined,agent1_newCapital,agent2_newCapital,variance;
@@ -35,8 +37,9 @@ int Market::calculateEquilibriumState() {
     transactions = 0;
     variance = 0;
     //Calculate equilibrium
-    //for (int cycle = 0; cycle < 100000; cycle++) {
-    while (variance < m_averageCapital*m_averageCapital) {
+    for (int cycle = 0; cycle < 100; cycle++) {
+        for (int cycles = 0; cycles < m_numberOfAgents; cycles++){
+//    while (variance < m_averageCapital*m_averageCapital) {
         agent_i = (int) (randomNumber(gen)*(double)m_numberOfAgents);
         agent_j = (int) (randomNumber(gen)*(double)m_numberOfAgents);
         while(agent_j==agent_i) {
@@ -50,6 +53,8 @@ int Market::calculateEquilibriumState() {
             m_agentCaptal[agent_i] = agent1_newCapital;
             m_agentCaptal[agent_j] = agent2_newCapital;
         }
+
+        }
         counter += 1;
         if (counter == 1){
             counter = 0;
@@ -61,13 +66,13 @@ int Market::calculateEquilibriumState() {
                 variance += differance*differance;
             }
             variance = variance/m_numberOfAgents;
-
-
         }
+
+        ofile << variance << "\n" ;
         transactions ++;
     }
     //TEST FILE
-    ofile << transactions << "\n" ;
+    //ofile << transactions << "\n" ;
     ofile << std::endl;
     ofile.close();
     return transactions;
