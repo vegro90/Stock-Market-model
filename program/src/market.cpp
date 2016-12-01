@@ -28,71 +28,95 @@ void Market::initialzeMarket(int numberOfAgents, double agentCapital) {
     }
 }
 
-void Market::calculateEquilibriumState() {
+void Market::initializeDistribution(int distributionResolution)
+{
+    m_distributionResolution = distributionResolution;
+    int distributionLength = m_marketCapital/m_distributionResolution;
+    m_capitalDistribution = new unsigned long[distributionLength];
+    for (int i = 0; i < distributionLength; i++) {
+        m_capitalDistribution[i] = 0;
+    }
+}
+
+void Market::logEquilibriumState(string filename) {
     random_device rd;
     mt19937_64 gen{rd()};
     uniform_real_distribution<double> randomNumber(0.0,1.0);
 
+    ofstream ofile;
+    ofile.open(filename, ofstream::app);
+
     double transactionFactor,agentCapitalCombined,agent1_newCapital,agent2_newCapital;
-    int agent_i,agent_j, transactionNumber;
+    int agent_i,agent_j, cycle;
     double variance, differance;
-    transactionNumber = 0;
+    cycle = 0;
     //Calculate equilibrium
     while (variance < m_averageCapital*m_averageCapital) {
-        agent_i = (int) (randomNumber(gen)*(double)m_numberOfAgents);
-        agent_j = (int) (randomNumber(gen)*(double)m_numberOfAgents);
-        while(agent_j==agent_i) {
+        for (int transaction = 0; transaction < m_numberOfAgents; transaction++) {
+            agent_i = (int) (randomNumber(gen)*(double)m_numberOfAgents);
             agent_j = (int) (randomNumber(gen)*(double)m_numberOfAgents);
+            while(agent_j==agent_i) {
+                agent_j = (int) (randomNumber(gen)*(double)m_numberOfAgents);
+            }
+            transactionFactor = randomNumber(gen);
+            agentCapitalCombined = m_agentCaptal[agent_i] + m_agentCaptal[agent_j];
+            agent1_newCapital = transactionFactor * agentCapitalCombined;
+            agent2_newCapital = agentCapitalCombined - agent1_newCapital;
+            if (agent1_newCapital > 0 && agent2_newCapital > 0) {
+                m_agentCaptal[agent_i] = agent1_newCapital;
+                m_agentCaptal[agent_j] = agent2_newCapital;
+            }
         }
-        transactionFactor = randomNumber(gen);
-        agentCapitalCombined = m_agentCaptal[agent_i] + m_agentCaptal[agent_j];
-        agent1_newCapital = transactionFactor * agentCapitalCombined;
-        agent2_newCapital = agentCapitalCombined - agent1_newCapital;
-        if (agent1_newCapital > 0 && agent2_newCapital > 0) {
-            m_agentCaptal[agent_i] = agent1_newCapital;
-            m_agentCaptal[agent_j] = agent2_newCapital;
-        }
-
         variance = 0;
         for (int i = 0; i < m_numberOfAgents; i++) {
             differance = (m_agentCaptal[i]-m_averageCapital);
             variance += differance*differance;
         }
         variance = variance/m_numberOfAgents;
-        transactionNumber ++;
+        cycle ++;
     }
+    ofile << cycle << endl;
+    ofile.close();
 }
 
-void Market::runTransactions(int numberOfTransactions) {
-    random_device rd;
-    mt19937_64 gen{rd()};
-    uniform_real_distribution<double> randomNumber(0.0,1.0);
 
-    double transactionFactor,agentCapitalCombined,agent1_newCapital,agent2_newCapital;
-    int agent_i,agent_j, transactionNumber;
-    double variance, differance;
+//void Market::calculateEquilibriumState() {
+//    random_device rd;
+//    mt19937_64 gen{rd()};
+//    uniform_real_distribution<double> randomNumber(0.0,1.0);
 
-    for (unsigned long transaction = 0; transaction < numberOfTransactions; transaction++) {
-        agent_i = (int) (randomNumber(gen)*(double)m_numberOfAgents);
-        agent_j = (int) (randomNumber(gen)*(double)m_numberOfAgents);
-        while(agent_j==agent_i) {
-            agent_j = (int) (randomNumber(gen)*(double)m_numberOfAgents);
-        }
+//    double transactionFactor,agentCapitalCombined,agent_i_newCapital,agent_j_newCapital;
+//    int agent_i,agent_j, transactionNumber;
+//    double variance, differance;
 
-        transactionFactor = randomNumber(gen);
-        agentCapitalCombined = m_agentCaptal[agent_i] + m_agentCaptal[agent_j];
+//    for (unsigned long cycle = 0; cycle < numberOfCycles; cycle++) {
+//        for (int transaction = 0; transaction < m_numberOfAgents; transaction++) {
 
-        agent1_newCapital = transactionFactor * agentCapitalCombined;
-        agent2_newCapital = agentCapitalCombined - agent1_newCapital;
+//            agent_i = (int) (randomNumber(gen)*(double)m_numberOfAgents);
+//            agent_j = (int) (randomNumber(gen)*(double)m_numberOfAgents);
 
-        if (agent1_newCapital > 0 && agent2_newCapital > 0) {
-            m_agentCaptal[agent_i] = agent1_newCapital;
-            m_agentCaptal[agent_j] = agent2_newCapital;
-        }
-    }
-}
+//            while(agent_j==agent_i) {
+//                agent_j = (int) (randomNumber(gen)*(double)m_numberOfAgents);
+//            }
 
-void Market::logTransactions(int numberOfTransactions) {
+//            transactionFactor = randomNumber(gen);
+//            agentCapitalCombined = m_agentCaptal[agent_i] + m_agentCaptal[agent_j];
+
+//            agent_i_newCapital = transactionFactor * agentCapitalCombined;
+//            agent_j_newCapital = agentCapitalCombined - agent_i_newCapital;
+
+//            if (agent_i_newCapital > 0 && agent_j_newCapital > 0) {
+//                m_agentCaptal[agent_i] = agent_i_newCapital;
+//                m_agentCaptal[agent_j] = agent_j_newCapital;
+//            }
+
+//            agent_i = (int) (agent_i_newCapital/m_distributionResolution);
+//        }
+//    }
+//}
+
+
+void Market::runTransactions(int numberOfCycles) {
     random_device rd;
     mt19937_64 gen{rd()};
     uniform_real_distribution<double> randomNumber(0.0,1.0);
@@ -101,28 +125,29 @@ void Market::logTransactions(int numberOfTransactions) {
     int agent_i,agent_j, transactionNumber;
     double variance, differance;
 
-    for (unsigned long transaction = 0; transaction < numberOfTransactions; transaction++) {
-        agent_i = (int) (randomNumber(gen)*(double)m_numberOfAgents);
-        agent_j = (int) (randomNumber(gen)*(double)m_numberOfAgents);
-        while(agent_j==agent_i) {
+    for (unsigned long cycle = 0; cycle < numberOfCycles; cycle++) {
+        for (int transaction = 0; transaction < m_numberOfAgents; transaction++) {
+
+            agent_i = (int) (randomNumber(gen)*(double)m_numberOfAgents);
             agent_j = (int) (randomNumber(gen)*(double)m_numberOfAgents);
+
+            while(agent_j==agent_i) {
+                agent_j = (int) (randomNumber(gen)*(double)m_numberOfAgents);
+            }
+
+            transactionFactor = randomNumber(gen);
+            agentCapitalCombined = m_agentCaptal[agent_i] + m_agentCaptal[agent_j];
+
+            agent_i_newCapital = transactionFactor * agentCapitalCombined;
+            agent_j_newCapital = agentCapitalCombined - agent_i_newCapital;
+
+            if (agent_i_newCapital > 0 && agent_j_newCapital > 0) {
+                m_agentCaptal[agent_i] = agent_i_newCapital;
+                m_agentCaptal[agent_j] = agent_j_newCapital;
+            }
+
+            agent_i = (int) (agent_i_newCapital/m_distributionResolution);
         }
-
-        transactionFactor = randomNumber(gen);
-        agentCapitalCombined = m_agentCaptal[agent_i] + m_agentCaptal[agent_j];
-
-        agent_i_newCapital = transactionFactor * agentCapitalCombined;
-        agent_j_newCapital = agentCapitalCombined - agent_i_newCapital;
-
-        if (agent_i_newCapital > 0 && agent_j_newCapital > 0) {
-            m_agentCaptal[agent_i] = agent_i_newCapital;
-            m_agentCaptal[agent_j] = agent_j_newCapital;
-        }
-
-        agent_i = (int) (agent_i_newCapital/m_distributionResolution);
-
-
-
     }
 }
 
