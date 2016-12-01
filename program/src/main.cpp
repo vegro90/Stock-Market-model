@@ -11,8 +11,18 @@ using namespace std;
 ofstream ofile;
 
 int main(int argc, char *argv[]) {
+    int numberOfAgents;
+    double initialCapital;
+    numberOfAgents = 500;
+    initialCapital = 1;
+
     Market market;
-    market.initialzeMarket(10,1);
+
+    //Initialize market and reach equilibrium
+    market.initialzeMarket(numberOfAgents,initialCapital);
+    market.calculateEquilibriumState();
+
+
     return 0;
 }
 
