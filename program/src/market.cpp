@@ -157,6 +157,76 @@ void Market::calculateCapitalDistribution(int numberOfCycles, int numberOfTransa
 }
 
 /************************************/
+/*        Assignment A              */
+/************************************/
+
+void Market::runTransactionsWithHistogram(int numberOfCycles, double capitalInterval, string filename) {
+    random_device rd;
+    mt19937_64 gen{rd()};
+    uniform_real_distribution<double> randomNumber(0.0,1.0);
+
+    ofstream ofile;
+    ofile.open(filename, ofstream::app);
+
+    double transactionFactor, agentCapitalCombined, agent_i_newCapital, agent_j_newCapital;
+    int agent_i, agent_j, MC_cycles, histogramSpace;
+    double variance, differance, agentCapitolChange;
+    double varianceCriteria = m_averageCapital*m_averageCapital;
+
+    //Vector for calculating histogtam
+    double *histogramVector = new double[m_numberOfAgents];
+    for(int i = 0; i <= m_numberOfAgents; i++) {
+        histogramVector[i] = 0;
+    }
+
+    //Loop for all transactions
+    for (unsigned long cycle = 0; cycle < numberOfCycles; cycle++) {
+        for (int transaction = 0; transaction < m_numberOfAgents; transaction++) {
+
+            agent_i = (int) (randomNumber(gen)*(double)m_numberOfAgents);
+            agent_j = (int) (randomNumber(gen)*(double)m_numberOfAgents);
+
+            while(agent_j==agent_i) {
+                agent_j = (int) (randomNumber(gen)*(double)m_numberOfAgents);
+            }
+
+            transactionFactor = randomNumber(gen);
+            agentCapitalCombined = m_agentCaptal[agent_i] + m_agentCaptal[agent_j];
+
+            agent_i_newCapital = transactionFactor * agentCapitalCombined;
+            agent_j_newCapital = agentCapitalCombined - agent_i_newCapital;
+
+            m_agentCaptal[agent_i] = agent_i_newCapital;
+            m_agentCaptal[agent_j] = agent_j_newCapital;
+
+
+            histogramSpace = (int) (agent_i_newCapital/m_distributionResolution);
+            histogramVector[histogramSpace] += 1;
+        }
+        variance = 0;
+        for (int i = 0; i < m_numberOfAgents; i++) {
+            differance = (m_agentCaptal[i]-m_averageCapital);
+            variance += differance*differance;
+        }
+        variance = variance/m_numberOfAgents;
+        if (variance >= varianceCriteria){
+        //    ofile << variance << "  ";
+        }
+        MC_cycles ++;
+
+    }
+    //ofile << MC_cycles << "  " << variance << "   ";
+
+    //Printing histogram vector to file
+    for(int i = 0; i<= m_numberOfAgents; i++) {
+        ofile << histogramVector[i] << "\n";
+    }
+
+    ofile.close();
+
+}
+
+/************************************/
 /*        Assignment C              */
 /************************************/
 

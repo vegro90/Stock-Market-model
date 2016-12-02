@@ -12,12 +12,11 @@ using namespace std;
 ofstream ofile;
 
 int main(int argc, char *argv[]) {
-    int numberOfAgents;
-    double initialCapital;
-    numberOfAgents = 500;
-    initialCapital = 1;
-//    string filename = "equilibriumtestForSavings.txt";
+    int numberOfAgents = 500;
+    double initialCapital = 1;
     Market market;
+
+//    string filename = "equilibriumtestForSavings.txt";
 
     //Initialize market and reach equilibrium
 //    for (int N = 100; N < 600; N+=100) {
@@ -29,12 +28,21 @@ int main(int argc, char *argv[]) {
 //        }
 //    }
 
-    //Initialize market with saving for equilibrium tests
-    int numberOfCycles = 1000;
-    double savingFactor = 0.5;
-    string filename = "equilibriumtestForSavings05.txt";
-    market.initialzeMarket(numberOfAgents,initialCapital);
-    market.runTransactionsWithSavings(numberOfCycles,savingFactor,filename);
+    //Initialize market for histogram and equilibrium (task A)
+    int numbeOfCycles = 1000;
+    double capitalIntervall = 0.01;
+    string filename = "taskA_histogram.txt";
+
+    market.initialzeMarket(numberOfAgents, initialCapital);
+    market.runTransactionsWithHistogram(numbeOfCycles, capitalIntervall, filename);
+
+
+    //Initialize market with saving for equilibrium tests (task C)
+//    int numberOfCycles = 1000;
+//    double savingFactor = 0.5;
+//    string filename = "equilibriumtestForSavings05.txt";
+//    market.initialzeMarket(numberOfAgents,initialCapital);
+//    market.runTransactionsWithSavings(numberOfCycles,savingFactor,filename);
 
 
     return 0;

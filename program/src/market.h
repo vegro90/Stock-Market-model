@@ -19,7 +19,8 @@ public:
     void runTransactions(int numberOfCycles);
     void calculateCapitalDistribution(int numberOfCycles, int numberOfTransactions, int distributionResolution);
 
-    void runTransactionsWithSavings(int numberOfCycles, double savingFactor, string filename);
+    void runTransactionsWithHistogram(int numberOfCycles, double capitalInterval , string filename);
+    void runTransactionsWithSavings(int numberOfCycles, double savingFactor, string filename);//Task C
 
     //SETTERS
     int numberOfAgents() const;
