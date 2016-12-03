@@ -17,14 +17,15 @@ public:
     void resetDistribution();
     void initializeTransactionLog();
     void resetTransactionLog();
-    void calculateEquilibriumState();
-    void logEquilibriumState(string filename);
+    //void calculateEquilibriumState();
+    int calculateEquilibriumState(string filename);
 
     void runEquilibrium(int numberOfCycles);
     void runTransactions(int numberOfCycles);
     void calculateCapitalDistribution(int numberOfCycles, int numberOfTransactions, int distributionResolution);
 
     void writeDistributionToFile(string filename);
+    void writeHeader(string filename);
     void printTransactionLog();
 
     //SETTERS

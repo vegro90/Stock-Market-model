@@ -43,7 +43,6 @@ void Market::initializeDistribution(double distributionResolution) {
 }
 
 void Market::resetDistribution() {
-
     for (int i = 0; i < m_distributionLength; i++) {
         m_capitalDistribution[i] = 0;
     }
@@ -67,32 +66,65 @@ void Market::resetTransactionLog() {
     }
 }
 
-void Market::logEquilibriumState(string filename) {
+int Market::calculateEquilibriumState(string filename) {
+    filename.append("_EqHist.txt");
     random_device rd;
     mt19937_64 gen{rd()};
     uniform_real_distribution<double> randomNumber(0.0,1.0);
 
+    writeHeader(filename);
+
     ofstream ofile;
     ofile.open(filename, ofstream::app);
 
-    double transactionFactor,agentCapitalCombined,agent_i_newCapital,agent_j_newCapital;
+    double transactionFactor, transactionValue;
     int agent_i,agent_j, cycle;
     double variance, differance;
-    cycle = 0;
+    double totalVariance, lastTotalVariance;
+    //Metropolis and probabilities
+    double metropolis, capitalDifference;
+    double correlationFactor;
+    double experienceFactor;
+
+    totalVariance = 0;
+    lastTotalVariance = 100;
+
     //Calculate equilibrium
-    while (variance < m_averageCapital*m_averageCapital) {
+    cycle = 1;
+
+    while (fabs(totalVariance-lastTotalVariance)/cycle  >= 0.1*totalVariance/cycle) {
+    //for (int cycle = 1; cycle < 1e3 ; cycle++) {
+        lastTotalVariance = totalVariance;
         for (int transaction = 0; transaction < m_numberOfAgents; transaction++) {
             agent_i = (int) (randomNumber(gen)*(double)m_numberOfAgents);
             agent_j = (int) (randomNumber(gen)*(double)m_numberOfAgents);
             while(agent_j==agent_i) {
                 agent_j = (int) (randomNumber(gen)*(double)m_numberOfAgents);
             }
-            transactionFactor = randomNumber(gen);
-            agentCapitalCombined = m_agentCaptal[agent_i] + m_agentCaptal[agent_j];
-            agent_i_newCapital = transactionFactor * agentCapitalCombined;
-            agent_j_newCapital = agentCapitalCombined - agent_i_newCapital;
-            m_agentCaptal[agent_i] = agent_i_newCapital;
-            m_agentCaptal[agent_j] = agent_j_newCapital;
+
+            //Calculate probability of an transaction
+            capitalDifference = fabs(m_agentCaptal[agent_i] - m_agentCaptal[agent_j]);
+            if (capitalDifference > 0) {
+                correlationFactor = pow(capitalDifference, -m_correlationStrength);
+            } else {
+                correlationFactor = 1.0;
+            }
+
+            experienceFactor = pow((m_transactionLog[agent_i][agent_j] + 1),m_experienceStrength);
+
+            //Metropolis test
+            metropolis = randomNumber(gen);
+            if (correlationFactor*experienceFactor >= metropolis) {
+
+                transactionFactor = randomNumber(gen);
+                transactionValue = m_agentSpendingFactor*(transactionFactor*m_agentCaptal[agent_j]-(1-transactionFactor)*m_agentCaptal[agent_i]);
+
+                m_agentCaptal[agent_i] += transactionValue;
+                m_agentCaptal[agent_j] -= transactionValue;
+
+                m_transactionLog[agent_i][agent_j] +=1;
+                m_transactionLog[agent_j][agent_i] +=1;
+            }
         }
         variance = 0;
         for (int i = 0; i < m_numberOfAgents; i++) {
@@ -100,27 +132,27 @@ void Market::logEquilibriumState(string filename) {
             variance += differance*differance;
         }
         variance = variance/m_numberOfAgents;
+        totalVariance += variance;
         cycle ++;
     }
     ofile << cycle << endl;
     ofile.close();
+    return cycle;
 }
+
 
 void Market::runEquilibrium(int numberOfCycles) {
     random_device rd;
     mt19937_64 gen{rd()};
     uniform_real_distribution<double> randomNumber(0.0,1.0);
 
-    double transactionFactor,agentCapitalCombined, transactionValue; //,agent_i_newCapital,agent_j_newCapital;
-    int agent_i,agent_j, transactionNumber;
-    double variance, differance;
-    int agent_i_inLog,agent_j_inLog;
-
+    double transactionFactor, transactionValue; //,agent_i_newCapital,agent_j_newCapital;
+    int agent_i,agent_j;
     //Metropolis and probabilities
     double metropolis, capitalDifference;
     double correlationFactor;
     double experienceFactor;
-    for (unsigned long cycle = 0; cycle < numberOfCycles; cycle++) {
+    for (int cycle = 0; cycle < numberOfCycles; cycle++) {
         for (int transaction = 0; transaction < m_numberOfAgents; transaction++) {
 
             agent_i = (int) (randomNumber(gen)*(double)m_numberOfAgents);
@@ -162,16 +194,15 @@ void Market::runTransactions(int numberOfCycles) {
     mt19937_64 gen{rd()};
     uniform_real_distribution<double> randomNumber(0.0,1.0);
 
-    double transactionFactor,agentCapitalCombined, transactionValue; //,agent_i_newCapital,agent_j_newCapital;
-    int agent_i,agent_j, transactionNumber;
-    double variance, differance;
+    double transactionFactor, transactionValue; //,agent_i_newCapital,agent_j_newCapital;
+    int agent_i,agent_j;
     int agent_i_inLog,agent_j_inLog;
 
     //Metropolis and probabilities
     double metropolis, capitalDifference;
     double correlationFactor;
     double experienceFactor;
-    for (unsigned long cycle = 0; cycle < numberOfCycles; cycle++) {
+    for (int cycle = 0; cycle < numberOfCycles; cycle++) {
         for (int transaction = 0; transaction < m_numberOfAgents; transaction++) {
 
             agent_i = (int) (randomNumber(gen)*(double)m_numberOfAgents);
@@ -200,6 +231,7 @@ void Market::runTransactions(int numberOfCycles) {
                 m_agentCaptal[agent_i] += transactionValue;
                 m_agentCaptal[agent_j] -= transactionValue;
 
+                //Save to the distribution
                 agent_i_inLog = m_agentCaptal[agent_i]/m_distributionResolution;
                 agent_j_inLog = m_agentCaptal[agent_j]/m_distributionResolution;
                 m_capitalDistribution[agent_i_inLog] += 1;
@@ -213,6 +245,10 @@ void Market::runTransactions(int numberOfCycles) {
 }
 
 void Market::writeDistributionToFile(string filename) {
+    filename.append("_CapitalDistribution.txt");
+
+    writeHeader(filename);
+
     ofstream distributionFile;
     distributionFile.open(filename, ios_base::app);
 
@@ -221,6 +257,15 @@ void Market::writeDistributionToFile(string filename) {
     }
 
     distributionFile.close();
+}
+
+void Market::writeHeader(string filename)
+{
+    ofstream ofile;
+    ofile.open(filename);
+    ofile << "###################\n" << m_numberOfAgents << "\t # Agents \n" << m_averageCapital << "\t # Initial capital \n" << m_agentSavingFactor << "\t # Saving rate \n";
+    ofile << m_correlationStrength << "\t # Correlation strength \n" << m_experienceStrength << "\t # Experience strength \n ################### \n";
+    ofile.close();
 }
 
 void Market::printTransactionLog()
