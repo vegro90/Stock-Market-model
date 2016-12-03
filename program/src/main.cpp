@@ -46,6 +46,7 @@ int main(int argc, char *argv[]) {
 
 
     //Calculate a safe equilibrium criteria
+    market.writeHeader(filename+"_EqHist.txt");
     for (int i = 0; i < 1e3; i++) {
         equilibriumState = market.calculateEquilibriumState(filename);
         market.resetMarket();

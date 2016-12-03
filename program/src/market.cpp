@@ -72,7 +72,6 @@ int Market::calculateEquilibriumState(string filename) {
     mt19937_64 gen{rd()};
     uniform_real_distribution<double> randomNumber(0.0,1.0);
 
-    writeHeader(filename);
 
     ofstream ofile;
     ofile.open(filename, ofstream::app);
@@ -87,7 +86,7 @@ int Market::calculateEquilibriumState(string filename) {
     double experienceFactor;
 
     totalVariance = 0;
-    lastTotalVariance = 100;
+    lastTotalVariance = 1;
 
     //Calculate equilibrium
     cycle = 1;
