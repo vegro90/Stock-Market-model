@@ -28,7 +28,7 @@ x = x[60:]
     norm = np.trapz(x**(-1-i),x)
     ax1.plot(x,x**(-1-i)/norm,label='alpha=%f'%i)
     """
-ax1.plot(x, np.exp(-x))
+#ax1.plot(x, np.exp(-x))
 #ax1.set_ylim(1e-6,2.5e0)
 ax1.set_xlim(0,2)
 ax1.legend()

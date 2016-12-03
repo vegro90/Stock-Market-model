@@ -8,7 +8,7 @@ Created on Sat Dec  3 13:29:07 2016
 import numpy as np
 import matplotlib.pyplot as plt
 
-fileName = "../release/src/test_EqHist.txt"
+fileName = "../release/src/runA_EqHist.txt"
 file = np.loadtxt(fileName,dtype = float, skiprows = 2)
 file = file[:]
     
