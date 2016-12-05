@@ -9,6 +9,7 @@ Market::Market() {
     m_distributionResolution = 0.01;
     m_correlationStrength = 0;
     m_experienceStrength = 0;
+    m_equalityLimit = 0.001;
 }
 
 Market::Market(int numberOfAgents, double agentCapital) {
@@ -49,20 +50,24 @@ void Market::resetDistribution() {
 }
 
 void Market::initializeTransactionLog() {
-    m_transactionLog = new int*[m_numberOfAgents];
+    m_transactionLogNorm = new unsigned long int[m_numberOfAgents];
+    m_transactionLog = new unsigned long int*[m_numberOfAgents];
     for (int i = 0; i < m_numberOfAgents; i++) {
-        m_transactionLog[i] = new int[m_numberOfAgents];
+        m_transactionLog[i] = new unsigned long int[m_numberOfAgents];
         for (int j = 0; j < m_numberOfAgents; j++) {
-            m_transactionLog[i][j] = 0;
+            m_transactionLog[i][j] = 1;
         }
+        m_transactionLogNorm[i] = 1;
     }
+
 }
 
 void Market::resetTransactionLog() {
     for (int i = 0; i < m_numberOfAgents; i++) {
         for (int j = 0; j < m_numberOfAgents; j++) {
-            m_transactionLog[i][j] = 0;
+            m_transactionLog[i][j] = 1;
         }
+        m_transactionLogNorm[i] = 1;
     }
 }
 
@@ -72,57 +77,80 @@ int Market::calculateEquilibriumState(string filename) {
     mt19937_64 gen{rd()};
     uniform_real_distribution<double> randomNumber(0.0,1.0);
 
-
+    //Write the distribution of calculated equlibrium states
     ofstream ofile;
     ofile.open(filename, ofstream::app);
 
-    double transactionFactor, transactionValue;
-    int agent_i,agent_j, cycle;
+    //Transaction variables
+    double transactionFactor, transactionValue; //,agent_i_newCapital,agent_j_newCapital;
+    int agent_i,agent_j;
+
+    double metropolis;
+    //Financial equality
+    double capitalDifference, correlationFactor;
+
+    //Financial history
+    double experienceFactor_i,experienceFactor_j, experienceFactor;
+
+    //Equilibrium variables
+    int cycle;
     double variance, differance;
     double totalVariance, lastTotalVariance;
-    //Metropolis and probabilities
-    double metropolis, capitalDifference;
-    double correlationFactor;
-    double experienceFactor;
 
     totalVariance = 0;
     lastTotalVariance = 1;
-
-    //Calculate equilibrium
     cycle = 1;
 
     while (fabs(totalVariance-lastTotalVariance)/cycle  >= 0.1*totalVariance/cycle) {
     //for (int cycle = 1; cycle < 1e3 ; cycle++) {
         lastTotalVariance = totalVariance;
         for (int transaction = 0; transaction < m_numberOfAgents; transaction++) {
+
             agent_i = (int) (randomNumber(gen)*(double)m_numberOfAgents);
             agent_j = (int) (randomNumber(gen)*(double)m_numberOfAgents);
+
             while(agent_j==agent_i) {
                 agent_j = (int) (randomNumber(gen)*(double)m_numberOfAgents);
             }
 
             //Calculate probability of an transaction
+
+            //Financial equality
             capitalDifference = fabs(m_agentCaptal[agent_i] - m_agentCaptal[agent_j]);
             if (capitalDifference > 0) {
-                correlationFactor = pow(capitalDifference, -m_correlationStrength);
+                correlationFactor = pow(capitalDifference/m_equalityLimit, -m_correlationStrength);
             } else {
                 correlationFactor = 1.0;
             }
 
-            experienceFactor = pow((m_transactionLog[agent_i][agent_j] + 1),m_experienceStrength);
+            //Financial history
+            experienceFactor_i = pow((m_transactionLog[agent_i][agent_j]/m_transactionLogNorm[agent_i]),m_experienceStrength);
+            experienceFactor_j = pow((m_transactionLog[agent_i][agent_j]/m_transactionLogNorm[agent_j]),m_experienceStrength);
+            experienceFactor = experienceFactor_i*experienceFactor_j;
 
             //Metropolis test
             metropolis = randomNumber(gen);
             if (correlationFactor*experienceFactor >= metropolis) {
 
+                //Calculate transaction value with a spending factor
                 transactionFactor = randomNumber(gen);
                 transactionValue = m_agentSpendingFactor*(transactionFactor*m_agentCaptal[agent_j]-(1-transactionFactor)*m_agentCaptal[agent_i]);
 
+                //Perform the transaction
                 m_agentCaptal[agent_i] += transactionValue;
                 m_agentCaptal[agent_j] -= transactionValue;
 
+                //Log the transaction
                 m_transactionLog[agent_i][agent_j] +=1;
                 m_transactionLog[agent_j][agent_i] +=1;
+
+                //Update local normalization of transaction log
+                if (m_transactionLog[agent_i][agent_j] > m_transactionLogNorm[agent_i]) {
+                    m_transactionLogNorm[agent_i] = m_transactionLog[agent_i][agent_j];
+                }
+                if (m_transactionLog[agent_i][agent_j] > m_transactionLogNorm[agent_j]) {
+                    m_transactionLogNorm[agent_j] = m_transactionLog[agent_i][agent_j];
+                }
             }
         }
         variance = 0;
@@ -145,12 +173,17 @@ void Market::runEquilibrium(int numberOfCycles) {
     mt19937_64 gen{rd()};
     uniform_real_distribution<double> randomNumber(0.0,1.0);
 
+    //Transaction variables
     double transactionFactor, transactionValue; //,agent_i_newCapital,agent_j_newCapital;
     int agent_i,agent_j;
-    //Metropolis and probabilities
-    double metropolis, capitalDifference;
-    double correlationFactor;
-    double experienceFactor;
+
+    double metropolis;
+    //Financial equality
+    double capitalDifference, correlationFactor;
+
+    //Financial history
+    double experienceFactor_i,experienceFactor_j, experienceFactor;
+
     for (int cycle = 0; cycle < numberOfCycles; cycle++) {
         for (int transaction = 0; transaction < m_numberOfAgents; transaction++) {
 
@@ -162,26 +195,43 @@ void Market::runEquilibrium(int numberOfCycles) {
             }
 
             //Calculate probability of an transaction
+
+            //Financial equality
             capitalDifference = fabs(m_agentCaptal[agent_i] - m_agentCaptal[agent_j]);
             if (capitalDifference > 0) {
-                correlationFactor = pow(capitalDifference, -m_correlationStrength);
+                correlationFactor = pow(capitalDifference/m_equalityLimit, -m_correlationStrength);
             } else {
                 correlationFactor = 1.0;
             }
-            experienceFactor = pow((m_transactionLog[agent_i][agent_j] + 1),m_experienceStrength);
+
+            //Financial history
+            experienceFactor_i = pow(((double) m_transactionLog[agent_i][agent_j]/(double) m_transactionLogNorm[agent_i]),m_experienceStrength);
+            experienceFactor_j = pow(((double) m_transactionLog[agent_i][agent_j]/(double) m_transactionLogNorm[agent_j]),m_experienceStrength);
+            experienceFactor = experienceFactor_i*experienceFactor_j;
 
             //Metropolis test
             metropolis = randomNumber(gen);
             if (correlationFactor*experienceFactor >= metropolis) {
 
+                //Calculate transaction value with a spending factor
                 transactionFactor = randomNumber(gen);
                 transactionValue = m_agentSpendingFactor*(transactionFactor*m_agentCaptal[agent_j]-(1-transactionFactor)*m_agentCaptal[agent_i]);
 
+                //Perform the transaction
                 m_agentCaptal[agent_i] += transactionValue;
                 m_agentCaptal[agent_j] -= transactionValue;
 
+                //Log the transaction
                 m_transactionLog[agent_i][agent_j] +=1;
                 m_transactionLog[agent_j][agent_i] +=1;
+
+                //Update local normalization of transaction log
+                if (m_transactionLog[agent_i][agent_j] > m_transactionLogNorm[agent_i]) {
+                    m_transactionLogNorm[agent_i] = m_transactionLog[agent_i][agent_j];
+                }
+                if (m_transactionLog[agent_i][agent_j] > m_transactionLogNorm[agent_j]) {
+                    m_transactionLogNorm[agent_j] = m_transactionLog[agent_i][agent_j];
+                }
             }
         }
     }
@@ -193,14 +243,21 @@ void Market::runTransactions(int numberOfCycles) {
     mt19937_64 gen{rd()};
     uniform_real_distribution<double> randomNumber(0.0,1.0);
 
+    //Transaction variables
     double transactionFactor, transactionValue; //,agent_i_newCapital,agent_j_newCapital;
     int agent_i,agent_j;
-    int agent_i_inLog,agent_j_inLog;
 
-    //Metropolis and probabilities
-    double metropolis, capitalDifference;
-    double correlationFactor;
-    double experienceFactor;
+    double metropolis;
+    //Financial equality
+    double capitalDifference, correlationFactor;
+
+
+    //Financial history
+    double experienceFactor_i,experienceFactor_j, experienceFactor;
+
+    //Distribution variables
+    int agent_i_inLog, agent_j_inLog;
+
     for (int cycle = 0; cycle < numberOfCycles; cycle++) {
         for (int transaction = 0; transaction < m_numberOfAgents; transaction++) {
 
@@ -212,32 +269,48 @@ void Market::runTransactions(int numberOfCycles) {
             }
 
             //Calculate probability of an transaction
+
+            //Financial equality
             capitalDifference = fabs(m_agentCaptal[agent_i] - m_agentCaptal[agent_j]);
             if (capitalDifference > 0) {
-                correlationFactor = pow(capitalDifference, -m_correlationStrength);
+                correlationFactor = pow(capitalDifference/m_equalityLimit, -m_correlationStrength);
             } else {
                 correlationFactor = 1.0;
             }
-            experienceFactor = pow((m_transactionLog[agent_i][agent_j] + 1),m_experienceStrength);
+
+            //Financial history
+            experienceFactor_i = pow((m_transactionLog[agent_i][agent_j]/m_transactionLogNorm[agent_i]),m_experienceStrength);
+            experienceFactor_j = pow((m_transactionLog[agent_i][agent_j]/m_transactionLogNorm[agent_j]),m_experienceStrength);
+            experienceFactor = experienceFactor_i*experienceFactor_j;
 
             //Metropolis test
             metropolis = randomNumber(gen);
             if (correlationFactor*experienceFactor >= metropolis) {
-
+                //Calculate transaction value with a spending factor
                 transactionFactor = randomNumber(gen);
                 transactionValue = m_agentSpendingFactor*(transactionFactor*m_agentCaptal[agent_j]-(1-transactionFactor)*m_agentCaptal[agent_i]);
 
+                //Perform the transaction
                 m_agentCaptal[agent_i] += transactionValue;
                 m_agentCaptal[agent_j] -= transactionValue;
+
+                //Log the transaction
+                m_transactionLog[agent_i][agent_j] +=1;
+                m_transactionLog[agent_j][agent_i] +=1;
+
+                //Update local normalization of transaction log
+                if (m_transactionLog[agent_i][agent_j] > m_transactionLogNorm[agent_i]) {
+                    m_transactionLogNorm[agent_i] = m_transactionLog[agent_i][agent_j];
+                }
+                if (m_transactionLog[agent_i][agent_j] > m_transactionLogNorm[agent_j]) {
+                    m_transactionLogNorm[agent_j] = m_transactionLog[agent_i][agent_j];
+                }
 
                 //Save to the distribution
                 agent_i_inLog = m_agentCaptal[agent_i]/m_distributionResolution;
                 agent_j_inLog = m_agentCaptal[agent_j]/m_distributionResolution;
                 m_capitalDistribution[agent_i_inLog] += 1;
                 m_capitalDistribution[agent_j_inLog] += 1;
-
-                m_transactionLog[agent_i][agent_j] +=1;
-                m_transactionLog[agent_j][agent_i] +=1;
             }
         }
     }

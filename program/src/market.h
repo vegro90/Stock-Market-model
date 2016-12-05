@@ -17,8 +17,10 @@ public:
     void resetDistribution();
     void initializeTransactionLog();
     void resetTransactionLog();
-    //void calculateEquilibriumState();
+    void monteCarloCycle();
+
     int calculateEquilibriumState(string filename);
+
 
     void runEquilibrium(int numberOfCycles);
     void runTransactions(int numberOfCycles);
@@ -53,23 +55,30 @@ public:
     void setExperienceStrength(double experienceStrength);
 
 private:
+    //Market variables
     int m_numberOfAgents;
+    unsigned long int *m_capitalDistribution;
+    double m_distributionResolution;
+    int m_distributionLength;
+
+    //Capital values
     double m_marketCapital;
     double m_averageCapital;
     double *m_agentCaptal;
+
+    //Saving fraction
     double m_agentSavingFactor;
     double m_agentSpendingFactor;
-    unsigned long int *m_capitalDistribution;
-    double m_distributionResolution;
-    int **m_transactionLog;
-    int m_distributionLength;
 
+
+    //Financial equality
     double m_correlationStrength;
+    double m_equalityLimit;
+
+    //Financial history
+    unsigned long int **m_transactionLog;
     double m_experienceStrength;
-
-
-    //int **m_transactionLog;
-
+    unsigned long int *m_transactionLogNorm;
 };
 
 #endif // MARKET_H
