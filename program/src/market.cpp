@@ -335,8 +335,15 @@ void Market::writeHeader(string filename)
 {
     ofstream ofile;
     ofile.open(filename);
-    ofile << "###################\n" << m_numberOfAgents << "\t # Agents \n" << m_averageCapital << "\t # Initial capital \n" << m_agentSavingFactor << "\t # Saving rate \n";
-    ofile << m_correlationStrength << "\t # Correlation strength \n" << m_experienceStrength << "\t # Experience strength \n ################### \n";
+    ofile << "****** Stock market simulation ******" << endl;
+    ofile << "*************************************" << endl;
+    ofile << m_numberOfAgents << "\t" << "# Number of agens" << endl;
+    ofile << m_averageCapital << "\t" << "# Agent capital" << endl;
+    ofile << m_distributionResolution << "\t" << "# Distribution resolution" <<  endl;
+    ofile << m_agentSavingFactor << "\t" << "# Agent saving factor"  << endl;
+    ofile << m_correlationStrength << "\t" << "# Correlation strength" << endl;
+    ofile << m_experienceStrength <<  "\t" << "# Experience strength" << endl;
+    ofile << "*************************************" << endl;
     ofile.close();
 }
 
