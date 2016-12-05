@@ -10,12 +10,21 @@ Market::Market() {
     m_correlationStrength = 0;
     m_experienceStrength = 0;
     m_equalityLimit = 0.001;
+    m_capitalDistribution = 0;
+    m_distributionLength = 0;
+    m_agentCaptal = 0;
+    m_transactionLog = 0;
+    m_transactionLogNorm = 0;
 }
 
 Market::Market(int numberOfAgents, double agentCapital) {
     m_numberOfAgents = numberOfAgents;
     m_averageCapital = agentCapital;
     m_marketCapital = m_numberOfAgents * m_averageCapital;
+    m_agentCaptal = new double[m_numberOfAgents];
+    for (int i = 0; i < m_numberOfAgents; i++) {
+        m_agentCaptal[i] = agentCapital;
+    }
 }
 
 void Market::initialzeMarket(int numberOfAgents, double agentCapital) {
@@ -368,6 +377,10 @@ int Market::numberOfAgents() const {
     return m_numberOfAgents;
 }
 
+double Market::distributionResolution() const {
+    return m_distributionResolution;
+}
+
 double Market::marketCapital() const {
     return m_marketCapital;
 }
@@ -388,6 +401,10 @@ double Market::agentSpendingFactor() const {
     return m_agentSpendingFactor;
 }
 
+double Market::equalityLimit() const {
+    return m_equalityLimit;
+}
+
 unsigned long *Market::capitalOccurencies() const {
     return m_capitalDistribution;
 }
@@ -405,6 +422,10 @@ double Market::experienceStrength() const {
 
 void Market::setNumberOfAgents(int numberOfAgents) {
     m_numberOfAgents = numberOfAgents;
+}
+
+void Market::setDistributionResolution(double distributionResolution) {
+    m_distributionResolution = distributionResolution;
 }
 
 void Market::setMarketCapital(double marketCapital) {
@@ -429,6 +450,10 @@ void Market::setAgentSpendingFactor(double agentSpendingFactor) {
     m_agentSavingFactor = 1.0 - agentSpendingFactor;
 }
 
+void Market::setEqualityLimit(double equalityLimit) {
+    m_equalityLimit = equalityLimit;
+}
+
 void Market::setCapitalOccurencies(unsigned long *capitalOccurencies) {
     m_capitalDistribution = capitalOccurencies;
 }
@@ -441,11 +466,5 @@ void Market::setCorrelationStrength(double correlationStrength) {
 void Market::setExperienceStrength(double experienceStrength) {
     m_experienceStrength = experienceStrength;
 }
-
-
-
-
-
-
 
 

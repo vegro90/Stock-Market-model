@@ -32,11 +32,13 @@ public:
 
     //SETTERS
     int numberOfAgents() const;
+    double distributionResolution() const;
     double marketCapital() const;
     double averageCapital() const;
     double *agentCaptal() const;
     double agentSavingFactor() const;
     double agentSpendingFactor() const;
+    double equalityLimit() const;
     unsigned long *capitalOccurencies() const;
 
     double correlationStrength() const;
@@ -44,15 +46,18 @@ public:
 
     //GETTERS
     void setNumberOfAgents(int numberOfAgents);
+    void setDistributionResolution(double distributionResolution);
     void setMarketCapital(double marketCapital);
     void setAverageCapital(double averageCapital);
     void setAgentCaptal(double *agentCaptal);
     void setAgentSavingFactor(double agentSavingFactor);
     void setAgentSpendingFactor(double agentSpendingFactor);
+    void setEqualityLimit(double equalityLimit);
     void setCapitalOccurencies(unsigned long *capitalOccurencies);
 
     void setCorrelationStrength(double correlationStrength);
     void setExperienceStrength(double experienceStrength);
+
 
 private:
     //Market variables
