@@ -18,6 +18,12 @@ Market::Market() {
 }
 
 Market::Market(int numberOfAgents, double agentCapital) {
+    if (numberOfAgents < 2) { // Ensure valid system size
+        cout << "********** ERROR ***********" << endl;
+        cout << "*  Need 2 or more agents!  *" << endl;
+        cout << "****************************" << endl;
+        terminate();
+    } else ;
     m_numberOfAgents = numberOfAgents;
     m_averageCapital = agentCapital;
     m_marketCapital = m_numberOfAgents * m_averageCapital;
@@ -28,6 +34,12 @@ Market::Market(int numberOfAgents, double agentCapital) {
 }
 
 void Market::initialzeMarket(int numberOfAgents, double agentCapital) {
+    if (numberOfAgents < 2) { // Ensure valid system size
+        cout << "*************** ERROR ***************" << endl;
+        cout << "*       Need 2 or more agents!      *" << endl;
+        cout << "*************************************" << endl;
+        terminate();
+    } else ;
     m_numberOfAgents = numberOfAgents;
     m_averageCapital = agentCapital;
     m_marketCapital = m_numberOfAgents * m_averageCapital;
@@ -68,7 +80,6 @@ void Market::initializeTransactionLog() {
         }
         m_transactionLogNorm[i] = 1;
     }
-
 }
 
 void Market::resetTransactionLog() {
@@ -111,7 +122,7 @@ int Market::calculateEquilibriumState(string filename) {
     cycle = 1;
 
     while (fabs(totalVariance-lastTotalVariance)/cycle  >= 0.1*totalVariance/cycle) {
-    //for (int cycle = 1; cycle < 1e3 ; cycle++) {
+        //for (int cycle = 1; cycle < 1e3 ; cycle++) {
         lastTotalVariance = totalVariance;
         for (int transaction = 0; transaction < m_numberOfAgents; transaction++) {
 
@@ -340,8 +351,7 @@ void Market::writeDistributionToFile(string filename) {
     distributionFile.close();
 }
 
-void Market::writeHeader(string filename)
-{
+void Market::writeHeader(string filename) {
     ofstream ofile;
     ofile.open(filename);
     ofile << "****** Stock market simulation ******" << endl;
@@ -356,14 +366,30 @@ void Market::writeHeader(string filename)
     ofile.close();
 }
 
-void Market::printTransactionLog()
-{
+void Market::printTransactionLog() {
     for (int i = 0; i < m_numberOfAgents; i++) {
         for (int j = 0; j < m_numberOfAgents; j++) {
             cout << m_transactionLog[i][j] << " ";
         }
         cout << endl;
     }
+}
+
+void Market::createFileName() {
+    m_fileName = "market_";
+    m_fileName.append(to_string( m_numberOfAgents ));
+    m_fileName.append( "_" );
+    m_fileName.append(to_string( m_averageCapital ));
+    m_fileName.append( "_" );
+    m_fileName.append(to_string( m_distributionResolution ));
+    m_fileName.append( "_" );
+    m_fileName.append(to_string( m_agentSavingFactor ));
+    m_fileName.append( "_" );
+    m_fileName.append(to_string( m_correlationStrength ));
+    m_fileName.append( "_" );
+    m_fileName.append(to_string( m_experienceStrength ));
+    m_fileName.append( "_" );
+    m_fileName.append(to_string( m_averageCapital ));
 }
 
 

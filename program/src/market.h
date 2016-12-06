@@ -29,6 +29,7 @@ public:
     void writeDistributionToFile(string filename);
     void writeHeader(string filename);
     void printTransactionLog();
+    void createFileName();
 
     //SETTERS
     int numberOfAgents() const;
@@ -84,6 +85,8 @@ private:
     unsigned long int **m_transactionLog;
     double m_experienceStrength;
     unsigned long int *m_transactionLogNorm;
+
+    string m_fileName;
 };
 
 #endif // MARKET_H

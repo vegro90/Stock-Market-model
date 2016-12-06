@@ -29,7 +29,18 @@ int main(int argc, char *argv[]) {
         cycles = atoi(argv[7]);
         experiments = atoi(argv[8]);
     } else {
-        cout << "Bad usage, add following input arguments: \n -Filename \n -Number of agents \n -Initial capital \n -Saving rate \n -Correlation factor \n -Experience factor \n -Monte Carlo cycles per experiment \n -Number of experiments \n \n";
+        cout << "*************** ERROR ***************" << endl;
+        cout << "!!! Bad usage !!! \nadd following input arguments:" << endl;
+        cout << "- Filename " << endl;
+        cout << "- Number of agents" << endl;
+        cout << "- Initial capital" << endl;
+        cout << "- Saving rate" << endl;
+        cout << "- Correlation factor" << endl;
+        cout << "- Experience factor" << endl;
+        cout << "- Monte Carlo cycles per experiment" << endl;
+        cout << "- Number of experiments" << endl;
+        cout << "*************************************" << endl;
+        cout << "e.g. \"./src fileName 500 1 0.5 0.2 0.1 1000 1000\"" << endl;
         exit(1);
     }
 
