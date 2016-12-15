@@ -4,10 +4,12 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 SOURCES += \
-    stock_test.cpp
+    stock_test.cpp \
+    ../src/market.cpp
 
 HEADERS += \
     catch.hpp \
+    ../src/market.h
 
 ##MPI OSX
 #INCLUDEPATH += /usr/local/include

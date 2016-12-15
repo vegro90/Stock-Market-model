@@ -4,9 +4,11 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 SOURCES += main.cpp \
+    market.cpp
 
 
 HEADERS += \
+    market.h
 
 
 ##MPI OSX
